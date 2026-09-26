@@ -134,6 +134,9 @@ ent('carpa', [224, 40], { quieta: { svgs: [tent()] } }, 'carpa, dirigible y nori
 ent('vida', [16, 16], { quieta: { svgs: [lifeIcon()] } }, 'icono de vida');
 
 fs.writeFileSync(path.join(OUT, 'manifest.json'), JSON.stringify(M, null, 1));
+// same data as a script: works when index.html is opened as a file (no fetch)
+fs.writeFileSync(path.join(OUT, 'manifest.js'), '/* Generado por tools/make-placeholders.js (copia de manifest.json) */\n' +
+  'window.Remake = window.Remake || {};\nwindow.Remake.MANIFEST = ' + JSON.stringify(M, null, 1) + ';\n');
 fs.writeFileSync(path.join(OUT, 'LEEME.txt'), [
   'CIRCUS CHARLIE (remake) - GRAFICOS',
   '',

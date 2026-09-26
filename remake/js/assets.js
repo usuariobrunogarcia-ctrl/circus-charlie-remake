@@ -22,12 +22,6 @@
     });
   }
 
-  async function exists(url) {
-    try {
-      const r = await fetch(url, { method: 'GET', cache: 'no-cache' });
-      return r.ok;
-    } catch (e) { return false; }
-  }
 
   class Assets {
     constructor(base) {
@@ -37,8 +31,9 @@
     }
 
     async load(onProgress) {
-      const r = await fetch(this.base + 'manifest.json', { cache: 'no-cache' });
-      this.manifest = await r.json();
+      // graficos/manifest.js (a script, so it also works from file://) or manifest.json
+      if (R.MANIFEST) this.manifest = R.MANIFEST;
+      else this.manifest = await (await fetch(this.base + 'manifest.json', { cache: 'no-cache' })).json();
       const list = [];
       for (const [en, e] of Object.entries(this.manifest.entidades)) {
         for (const [an, def] of Object.entries(e.animaciones)) list.push([en, an, e, def]);
@@ -48,14 +43,14 @@
         const dir = `${this.base}${en}/${an}/`;
         const imgs = [];
         // PNG replacements (any number of frames), otherwise the SVG placeholders
+        // (images are probed with <img>, which also works when the page is a local file)
         for (let k = 0; k < 64; k++) {
-          if (!(await exists(dir + pad(k) + '.png'))) break;
           const img = await loadImage(dir + pad(k) + '.png');
-          if (img) imgs.push(img);
+          if (!img) break;
+          imgs.push(img);
         }
         if (!imgs.length) {
           for (let k = 0; k < 64; k++) {
-            if (k >= def.frames && !(await exists(dir + pad(k) + '.svg'))) break;
             const img = await loadImage(dir + pad(k) + '.svg');
             if (!img) break;
             imgs.push(img);
