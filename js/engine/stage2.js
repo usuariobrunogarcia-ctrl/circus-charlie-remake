@@ -114,6 +114,7 @@
     let y = this.r16(x + 12);
     let a = this.rom8(y++);
     if (a === 0xff) { y = this.rom16(y); this.w16(x + 12, y); a = this.rom8(y++); }
+    if (this.visFrame) this.visFrame(x, 1, y - 1, 3);
     m[x + 14] = a;
     m[x + 15] = this.rom8(y++);
     m[x + 11] = this.rom8(y++);
@@ -294,6 +295,7 @@
     let y = this.r16(x + 12);
     let a = this.rom8(y++);
     if (a === 0xff) { y = this.rom16(y); this.w16(x + 12, y); a = this.rom8(y++); }
+    if (this.visFrame) this.visFrame(x, 3, y - 1, 5);
     m[x + 14] = a;
     m[x + 30] = this.rom8(y++); m[x + 46] = this.rom8(y++);
     a = this.rom8(y++);
@@ -926,6 +928,7 @@
     let y = this.r16(x + 12);
     let a = this.rom8(y++);
     if (a === 0xff) { y = this.rom16(y); this.w16(x + 12, y); a = this.rom8(y++); }
+    if (this.visFrame) this.visFrame(x, 4, y - 1, 6);
     m[x + 14] = a;
     m[x + 30] = this.rom8(y++); m[x + 46] = this.rom8(y++);
     m[x + 62] = this.rom8(y++);
