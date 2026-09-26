@@ -106,6 +106,90 @@
     return files;
   }
 
+  // ------------------------------------------------ objects (whole sprites)
+  const STAGE_DIRS = ['etapa1_leon', 'etapa2_cuerda_floja', 'etapa3_trampolin', 'etapa4_pelotas',
+    'etapa5_caballo', 'etapa6_trapecio'];
+
+  /** Folder of an animation, relative to "objetos/". */
+  function objDir(a) {
+    const st = a.stages.length === 1 ? STAGE_DIRS[a.stages[0] - 1] : 'comun';
+    return st + '/' + a.object + '/' + a.name;
+  }
+
+  /** Original frame k of animation a, composed on the animation canvas (RGBA). */
+  function composeFrame(gfx, a, k) {
+    const [bx, by, bw, bh] = a.box;
+    const out = new Uint8Array(bw * bh * 4);
+    const [codes, attrs] = a.frames[k];
+    codes.forEach((c, i) => {
+      const code = c + 8 * (attrs[i] & 0x20);
+      if (code >= gfx.numSprites) return;
+      const px = gfx.spriteRGBA(code, attrs[i] & 15);
+      const ox = a.offs[i][0] - bx, oy = a.offs[i][1] - by;
+      for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) {
+        // hardware flips: 0x80 mirrors horizontally, 0x40 vertically on the rotated screen
+        const sx = attrs[i] & 0x80 ? 15 - x : x, sy = attrs[i] & 0x40 ? 15 - y : y;
+        const o = (sy * 16 + sx) * 4;
+        if (!px[o + 3]) continue;
+        const d = ((oy + y) * bw + ox + x) * 4;
+        out[d] = px[o]; out[d + 1] = px[o + 1]; out[d + 2] = px[o + 2]; out[d + 3] = px[o + 3];
+      }
+    });
+    return out;
+  }
+
+  const frameLen = (f) => f[2] + 1;     // game frames an original frame is shown
+
+  function readmeObjetos() {
+    return [
+      'CIRCUS CHARLIE - SPRITES HD POR OBJETO',
+      '======================================',
+      '',
+      'objetos/<etapa>/<objeto>/<animacion>/00.png, 01.png, ...',
+      '',
+      '  Cada carpeta es UNA animacion de un objeto, con los sprites ya armados',
+      '  (el juego los dibuja con piezas de 16x16; aqui estan completos).',
+      '  Todos los frames de una animacion tienen el mismo lienzo, alineados.',
+      '  info.txt dice el tamano original y cuanto dura cada frame.',
+      '',
+      'Para hacer graficos HD:',
+      '  - Reemplaza los PNG por imagenes de CUALQUIER tamano (p.ej. 32x32 -> 128x128),',
+      '    manteniendo la proporcion del lienzo original.',
+      '  - Puedes poner MAS o MENOS frames (00.png, 01.png, ... en orden). La animacion',
+      '    dura lo mismo que la original: los frames se reparten en ese tiempo.',
+      '  - En pantalla la imagen se escala al tamano del objeto original, con suavizado.',
+      '  - Usa fondo transparente.',
+      '  - Las carpetas que no cambies se dibujan con los graficos originales.',
+      '',
+      'Cargar: menu (ESC) > "Cargar carpeta HD" o "Cargar .zip HD".',
+      '',
+    ].join('\n');
+  }
+
+  /** Files of the "sprites ya armados" export; stages: list of stage numbers or null for all. */
+  function buildObjectExport(gfx, objdefs, stages) {
+    const files = [];
+    const enc = new TextEncoder();
+    for (const a of objdefs.anims) {
+      if (stages && !a.stages.some((st) => stages.includes(st))) continue;
+      const dir = 'objetos/' + objDir(a);
+      const [, , bw, bh] = a.box;
+      a.frames.forEach((f, k) => files.push({ name: dir + '/' + pad(k, 2) + '.png', data: CC.PNG.encode(bw, bh, composeFrame(gfx, a, k)) }));
+      const total = a.frames.reduce((t, f) => t + frameLen(f), 0);
+      const info = [
+        `objeto: ${a.object}`, `animacion: ${a.name}`,
+        `tamano original: ${bw}x${bh} pixeles`,
+        `frames originales: ${a.frames.length}`,
+        `duracion de cada frame (en cuadros de 1/60 s): ${a.frames.map(frameLen).join(', ')}`,
+        `duracion total: ${total} cuadros (${(total / 60.6).toFixed(2)} s)`,
+        `guion del ROM: ${a.start.toString(16).toUpperCase()}`, '',
+      ].join('\n');
+      files.push({ name: dir + '/info.txt', data: enc.encode(info) });
+    }
+    files.push({ name: 'LEEME_OBJETOS.txt', data: enc.encode(readmeObjetos()) });
+    return files;
+  }
+
   function allTiles(gfx) {
     const out = [];
     for (let c = 0; c < gfx.numChars; c++) out.push(c * 16);
@@ -142,9 +226,17 @@
   }
 
   class HDPack {
-    constructor(gfx, defs) {
+    constructor(gfx, defs, objdefs) {
       this.gfx = gfx;
       this.defs = prepareDefs(defs, gfx);
+      this.objdefs = objdefs || { anims: [] };
+      this.objByStart = new Map();
+      this.objByDir = new Map();
+      this.objdefs.anims.forEach((a) => {
+        this.objByStart.set(a.start, a);
+        this.objByDir.set(objDir(a).toLowerCase(), a);
+      });
+      this.objTrack = new Map();
       this.clear();
       this.trackers = [];
       this.nextTrackers = [];
@@ -153,11 +245,13 @@
     clear() {
       this.sprites = new Map();  // animIndex -> { main: [img], byColor: Map(color -> [img]) }
       this.tiles = new Map();    // code*16+color -> img
+      this.objects = new Map();  // animation start -> [img]
       this.count = 0;
       this.version = (this.version || 0) + 1;
     }
 
     get empty() { return this.count === 0; }
+    get hasObjects() { return this.objects.size > 0; }
 
     /**
      * files: { path: Blob | Uint8Array }.  Paths may include any prefix
@@ -167,9 +261,18 @@
       this.clear();
       const spriteFolders = new Map(); // "animIdx|color" -> [{name, data}]
       const tileFiles = [];
+      const objFolders = new Map();    // animation -> [{name, data}]
       for (const path of Object.keys(files)) {
         const p = path.replace(/\\/g, '/');
         if (!IMG_RE.test(p)) continue;
+        const om = p.match(/(?:^|\/)objetos\/(.+)\/([^/]+)$/i);
+        if (om) {
+          const a = this.objByDir.get(om[1].toLowerCase());
+          if (!a) continue;
+          if (!objFolders.has(a)) objFolders.set(a, []);
+          objFolders.get(a).push({ name: om[2], data: files[path] });
+          continue;
+        }
         let m = p.match(/(?:^|\/)sprites\/(.+)\/([^/]+)$/i);
         if (m) {
           let folder = m[1], color = -1;
@@ -185,7 +288,7 @@
         m = p.match(/(?:^|\/)tiles\/color_(\d+)\/tile_(\d+)\.[a-z]+$/i);
         if (m) tileFiles.push({ key: parseInt(m[2], 10) * 16 + parseInt(m[1], 10), data: files[path] });
       }
-      const total = spriteFolders.size + tileFiles.length;
+      const total = spriteFolders.size + tileFiles.length + objFolders.size;
       let done = 0;
       const tick = () => { done++; if (onProgress && (done % 25 === 0 || done === total)) onProgress(done, total); };
 
@@ -214,6 +317,23 @@
         if (color < 0) entry.main = imgs; else entry.byColor.set(color, imgs);
         this.count++;
       }
+      for (const [a, list] of objFolders) {
+        list.sort((x, y) => natural(x.name, y.name));
+        const imgs = [];
+        for (const f of list) {
+          try { imgs.push(await decodeImage(f.data)); } catch (e) { /* ignore broken files */ }
+        }
+        tick();
+        if (!imgs.length) continue;
+        const [, , bw, bh] = a.box;
+        if (imgs.length === a.frames.length && imgs.every((im) => im.width === bw && im.height === bh)) {
+          let same = true;
+          for (let k = 0; k < imgs.length && same; k++) same = samePixels(imagePixels(imgs[k]), composeFrame(this.gfx, a, k));
+          if (same) continue;
+        }
+        this.objects.set(a.start, imgs);
+        this.count++;
+      }
       for (const t of tileFiles) {
         let img;
         try { img = await decodeImage(t.data); } catch (e) { tick(); continue; }
@@ -229,6 +349,31 @@
 
     tileImage(code, color) {
       return this.tiles.size ? (this.tiles.get(code * 16 + color) || null) : null;
+    }
+
+    // ------------------------------------------------ whole objects
+    /**
+     * HD image for an object: anim = animation definition, k = original frame
+     * shown, root = its first record (identifies the object between frames).
+     * The HD frames are spread over the duration of the original animation.
+     */
+    objectImage(anim, k, root) {
+      const imgs = this.objects.get(anim.start);
+      if (!imgs) return null;
+      const now = this.now;
+      let tr = this.objTrack.get(root);
+      if (!tr || tr.start !== anim.start) { tr = { start: anim.start, k, since: now }; this.objTrack.set(root, tr); }
+      else if (tr.k !== k) { tr.k = k; tr.since = now; }
+      tr.seen = now;
+      const M = imgs.length, N = anim.frames.length;
+      if (M === 1) return imgs[0];
+      let total = 0, before = 0;
+      anim.frames.forEach((f, i) => { const l = frameLen(f); if (i < k) before += l; total += l; });
+      const len = frameLen(anim.frames[k]);
+      const t = Math.min(now - tr.since, len - 0.001);
+      let idx = Math.floor((before + t) / total * M);
+      if (N === 1) idx = Math.floor((now - tr.since) / Math.max(1, len) * M) % M;   // single frame: loop
+      return imgs[Math.max(0, Math.min(M - 1, idx))];
     }
 
     // ------------------------------------------------ animation tracking
@@ -300,5 +445,5 @@
     }
   }
 
-  CC.HD = { buildExport, prepareDefs, HDPack, readme };
+  CC.HD = { buildExport, buildObjectExport, composeFrame, objDir, prepareDefs, HDPack, readme };
 })(typeof window !== 'undefined' ? window : globalThis);
