@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Circus Charlie - remake (etapa 1)</title>
+<style>
+  :root { --panel: rgba(12, 12, 20, 0.94); --fg: #f2f2f2; --accent: #ffcc00; --muted: #9aa; }
+  html, body { margin: 0; height: 100%; background: #000; color: var(--fg); overflow: hidden;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+  #screen { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; }
+  .overlay { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+  .overlay[hidden] { display: none; }
+  .panel { background: var(--panel); border: 2px solid var(--accent); border-radius: 12px; padding: 20px 24px;
+    max-width: min(520px, calc(100vw - 32px)); box-sizing: border-box; }
+  h1 { margin: 0 0 8px; color: var(--accent); font-size: 24px; }
+  label { display: flex; gap: 8px; align-items: center; margin: 6px 0; font-size: 14px; }
+  p { font-size: 13px; color: var(--muted); line-height: 1.5; }
+  button, .filebtn { background: #222; color: var(--fg); border: 1px solid #555; border-radius: 6px; padding: 7px 12px; font-size: 14px; cursor: pointer; }
+  .filebtn input { display: none; }
+  select { background: #222; color: var(--fg); border: 1px solid #555; border-radius: 4px; padding: 3px; }
+</style>
+</head>
+<body>
+<canvas id="screen"></canvas>
+<div id="menu" class="overlay" hidden>
+  <div class="panel">
+    <h1>MENÚ</h1>
+    <p>ENTER empezar · ← → moverse · ESPACIO / Z saltar · P pausa · F pantalla completa</p>
+    <label>Dificultad <select id="difficulty"><option value="0">Fácil</option><option value="1">Normal</option><option value="2">Difícil</option><option value="3">Muy difícil</option></select></label>
+    <label>Vidas <select id="lives"><option>3</option><option>4</option><option>5</option><option>7</option></select></label>
+    <p>Gráficos: carpeta <code>remake/graficos/&lt;entidad&gt;/&lt;animación&gt;/00.png…</code>.
+      Poné tus PNG en esas carpetas, o elegí aquí una carpeta con la misma estructura.</p>
+    <label class="filebtn">Cargar carpeta de gráficos<input id="gfx-folder" type="file" webkitdirectory multiple></label>
+    <p id="gfx-status"></p>
+    <button id="btn-close">Volver al juego</button>
+  </div>
+</div>
+<script>window.CC = window.CC || {};</script>
+<script src="../js/input.js"></script>
+<script src="js/assets.js"></script>
+<script src="js/stage1.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>

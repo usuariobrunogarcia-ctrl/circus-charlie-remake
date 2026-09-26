@@ -41,8 +41,10 @@
     w8(a, v) { this.m[a] = v; }
     r16(a) { return (this.m[a] << 8) | this.m[a + 1]; }
     w16(a, v) { this.m[a] = (v >> 8) & 0xff; this.m[a + 1] = v & 0xff; }
-    rom8(a) { return this.rom[a]; }
-    rom16(a) { return (this.rom[a] << 8) | this.rom[a + 1]; }
+    // reads through a pointer: tables are in ROM but some pointers lead to RAM
+    // (e.g. the score to add at 0x20A9)
+    rom8(a) { a &= 0xffff; return a >= 0x2000 && a < 0x4000 ? this.m[a] : this.rom[a]; }
+    rom16(a) { return (this.rom8(a) << 8) | this.rom8(a + 1); }
     // direct page (DP = 0x20)
     dp(n) { return this.m[0x2000 + n]; }
     setDp(n, v) { this.m[0x2000 + n] = v & 0xff; }

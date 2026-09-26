@@ -1,0 +1,70 @@
+{
+ "EA45": [
+  "charlie",
+  "salta"
+ ],
+ "EA4E": [
+  "charlie",
+  "voltereta"
+ ],
+ "EA75": [
+  "charlie",
+  "quieto"
+ ],
+ "EB20": [
+  "charlie",
+  "celebra"
+ ],
+ "EC44": [
+  "charlie",
+  "camina"
+ ],
+ "EB2F": [
+  "cartel_great",
+  "pieza_GR"
+ ],
+ "EB38": [
+  "cartel_great",
+  "pieza_EA"
+ ],
+ "EB41": [
+  "cartel_great",
+  "pieza_T"
+ ],
+ "EB4A": [
+  "cartel_far_out",
+  "pieza_FA"
+ ],
+ "EB53": [
+  "cartel_far_out",
+  "pieza_RO"
+ ],
+ "EB5C": [
+  "cartel_far_out",
+  "pieza_UT"
+ ],
+ "EC5F": [
+  "mono_violeta",
+  "corre"
+ ],
+ "EC74": [
+  "mono_violeta",
+  "salta"
+ ],
+ "EC89": [
+  "mono_marron",
+  "camina"
+ ],
+ "EC9E": [
+  "mono_meta",
+  "cartel"
+ ],
+ "ECB8": [
+  "puntos",
+  "cartel_100_200"
+ ],
+ "ECC1": [
+  "puntos",
+  "cartel_0"
+ ]
+}

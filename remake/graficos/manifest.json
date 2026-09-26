@@ -1,0 +1,305 @@
+{
+ "tamano_juego": [
+  224,
+  256
+ ],
+ "entidades": {
+  "charlie_leon": {
+   "descripcion": "Charlie montado en el león",
+   "tamano": [
+    48,
+    32
+   ],
+   "animaciones": {
+    "quieto": {
+     "descripcion": "parado",
+     "frames": 1
+    },
+    "corre": {
+     "modo": "distancia",
+     "pixeles_por_frame": 11,
+     "descripcion": "avanza (el frame cambia cada 11 px)",
+     "frames": 3
+    },
+    "retrocede": {
+     "modo": "distancia",
+     "pixeles_por_frame": 11,
+     "frames": 3
+    },
+    "salta": {
+     "frames": 1
+    },
+    "cae": {
+     "descripcion": "chocó con un aro o una olla",
+     "frames": 1
+    },
+    "celebra": {
+     "duracion_frame": 32,
+     "frames": 2
+    }
+   }
+  },
+  "aro": {
+   "descripcion": "aro de fuego",
+   "tamano": [
+    32,
+    64
+   ],
+   "animaciones": {
+    "atras": {
+     "duracion_frame": 3,
+     "descripcion": "mitad trasera (detrás de Charlie)",
+     "frames": 3
+    },
+    "adelante": {
+     "duracion_frame": 3,
+     "descripcion": "mitad delantera (delante de Charlie)",
+     "frames": 3
+    }
+   }
+  },
+  "aro_chico": {
+   "descripcion": "aro chico con la bolsa de dinero",
+   "tamano": [
+    32,
+    48
+   ],
+   "animaciones": {
+    "atras": {
+     "duracion_frame": 3,
+     "frames": 3
+    },
+    "adelante": {
+     "duracion_frame": 3,
+     "frames": 3
+    }
+   }
+  },
+  "bolsa": {
+   "descripcion": "bolsa de dinero",
+   "tamano": [
+    16,
+    16
+   ],
+   "animaciones": {
+    "cuelga": {
+     "frames": 1
+    }
+   }
+  },
+  "olla": {
+   "descripcion": "olla de fuego",
+   "tamano": [
+    32,
+    32
+   ],
+   "animaciones": {
+    "arde": {
+     "duracion_frame": 5,
+     "frames": 3
+    }
+   }
+  },
+  "podio": {
+   "descripcion": "podio de la meta",
+   "tamano": [
+    48,
+    32
+   ],
+   "animaciones": {
+    "quieto": {
+     "frames": 1
+    }
+   }
+  },
+  "fuegos": {
+   "descripcion": "fuegos artificiales de la meta",
+   "tamano": [
+    32,
+    32
+   ],
+   "animaciones": {
+    "explota": {
+     "duracion_frame": 6,
+     "frames": 4
+    }
+   }
+  },
+  "cartel_oh_no": {
+   "descripcion": "cartel al morir",
+   "tamano": [
+    48,
+    16
+   ],
+   "animaciones": {
+    "quieto": {
+     "frames": 1
+    }
+   }
+  },
+  "cartel_meta": {
+   "descripcion": "cartel de la meta",
+   "tamano": [
+    48,
+    16
+   ],
+   "animaciones": {
+    "parpadea": {
+     "duracion_frame": 8,
+     "frames": 2
+    }
+   }
+  },
+  "cartel_metros": {
+   "descripcion": "carteles de distancia",
+   "tamano": [
+    48,
+    16
+   ],
+   "animaciones": {
+    "100m": {
+     "frames": 1
+    },
+    "90m": {
+     "frames": 1
+    },
+    "80m": {
+     "frames": 1
+    },
+    "70m": {
+     "frames": 1
+    },
+    "60m": {
+     "frames": 1
+    },
+    "50m": {
+     "frames": 1
+    },
+    "40m": {
+     "frames": 1
+    },
+    "30m": {
+     "frames": 1
+    },
+    "20m": {
+     "frames": 1
+    },
+    "10m": {
+     "frames": 1
+    }
+   }
+  },
+  "puntos": {
+   "descripcion": "puntos que aparecen al saltar",
+   "tamano": [
+    32,
+    12
+   ],
+   "animaciones": {
+    "100": {
+     "frames": 1
+    },
+    "200": {
+     "frames": 1
+    },
+    "300": {
+     "frames": 1
+    },
+    "400": {
+     "frames": 1
+    },
+    "500": {
+     "frames": 1
+    },
+    "1000": {
+     "frames": 1
+    },
+    "2000": {
+     "frames": 1
+    },
+    "3000": {
+     "frames": 1
+    },
+    "4000": {
+     "frames": 1
+    },
+    "5000": {
+     "frames": 1
+    }
+   }
+  },
+  "fondo": {
+   "descripcion": "tribunas",
+   "tamano": [
+    256,
+    64
+   ],
+   "animaciones": {
+    "publico": {
+     "descripcion": "se repite cada 256 px",
+     "frames": 1
+    }
+   }
+  },
+  "fondo_pista": {
+   "descripcion": "pista",
+   "tamano": [
+    256,
+    108
+   ],
+   "animaciones": {
+    "pista": {
+     "frames": 1
+    }
+   }
+  },
+  "entrada": {
+   "descripcion": "entrada del circo (se repite cada 256 px)",
+   "tamano": [
+    48,
+    64
+   ],
+   "animaciones": {
+    "quieta": {
+     "frames": 1
+    }
+   }
+  },
+  "cielo": {
+   "descripcion": "cielo del marcador (se repite)",
+   "tamano": [
+    256,
+    40
+   ],
+   "animaciones": {
+    "quieto": {
+     "frames": 1
+    }
+   }
+  },
+  "carpa": {
+   "descripcion": "carpa, dirigible y noria del marcador",
+   "tamano": [
+    224,
+    40
+   ],
+   "animaciones": {
+    "quieta": {
+     "frames": 1
+    }
+   }
+  },
+  "vida": {
+   "descripcion": "icono de vida",
+   "tamano": [
+    16,
+    16
+   ],
+   "animaciones": {
+    "quieta": {
+     "frames": 1
+    }
+   }
+  }
+ }
+}

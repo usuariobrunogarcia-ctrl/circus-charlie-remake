@@ -278,7 +278,19 @@
       ctx.beginPath();
       ctx.rect(-x0 * K, 0, W * K, H * K);
       ctx.clip();
+      // whole objects replaced by HD graphics ("sprites ya armados")
+      const objDraw = hdOn && this.hd.hasObjects && vs.objects ? this.objectDraws(vs, x0) : null;
       for (let o = 0; o < 0x100; o += 4) {
+        if (objDraw) {
+          const od = objDraw.get(o >> 2);
+          if (od === null) continue;                       // part of an object drawn as a whole
+          if (od) {
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(od.img, od.x * K, od.y * K, od.w * K, od.h * K);
+            continue;
+          }
+        }
         const a1 = spr[o + 1];
         const code = spr[o] + 8 * (a1 & 0x20);
         if (code >= this.gfx.numSprites) continue;
@@ -292,6 +304,43 @@
           (a1 & 0x80) !== 0, (a1 & 0x40) !== 0, !!hdImg);
       }
       ctx.restore();
+    }
+
+    /**
+     * Objects with HD graphics: slot -> {img, x, y, w, h} for the first sprite of
+     * the object, null for its other sprites.
+     */
+    objectDraws(vs, x0) {
+      const spr = vs.sprites, hd = this.hd, out = new Map();
+      const slotOf = (r) => (vs.reverse ? 59 - r : r);
+      for (const [root, st] of vs.objects) {
+        const a = hd.objByStart.get(st.start);
+        if (!a || !hd.objects.has(a.start)) continue;
+        const r0 = (root - 0x2400) >> 4;
+        const slots = [];
+        for (let i = 0; i < a.n; i++) slots.push(slotOf(r0 + i));
+        if (slots.some((s) => s < 0 || s > 63)) continue;
+        // which original frame is on screen (the sprites latched last frame)
+        let k = -1;
+        for (let f = 0; f < a.frames.length && k < 0; f++) {
+          const [codes, attrs] = a.frames[f];
+          let ok = true;
+          for (let i = 0; i < a.n && ok; i++) {
+            const o = slots[i] * 4;
+            ok = spr[o] === codes[i] && (spr[o + 1] & 0x20) === (attrs[i] & 0x20);
+          }
+          if (ok) k = f;
+        }
+        if (k < 0) continue;
+        const img = hd.objectImage(a, k, root);
+        if (!img) continue;
+        const o0 = slots[0] * 4;
+        let dx = 224 - spr[o0 + 3] - x0, dy = spr[o0 + 2];
+        const first = Math.min(...slots);
+        slots.forEach((s) => out.set(s, null));
+        out.set(first, { img, x: dx + a.box[0], y: dy + a.box[1], w: a.box[2], h: a.box[3] });
+      }
+      return out;
     }
 
     /** Draws a video state. now = frame counter (for HD animation timing). */

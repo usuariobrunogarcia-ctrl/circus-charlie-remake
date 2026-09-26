@@ -17,7 +17,9 @@
   let running = false, paused = false;
   let spriteBuffer = new Uint8Array(256);
   let frameNo = 0;
-  const vs = { videoram: null, colorram: null, sprites: spriteBuffer, scroll: 0, flip: 0 };
+  const objects = new Map();        // record -> animation script being played
+  let spriteReverse = false;
+  const vs = { videoram: null, colorram: null, sprites: spriteBuffer, scroll: 0, flip: 0, objects: null, reverse: false };
 
   function loadSettings() {
     const def = { displayMode: 'wide', smooth: false, hd: true, ambient: true, scanlines: false, lives: 3, difficulty: 'normal' };
@@ -63,7 +65,7 @@
     try { roms = CC.Roms.buildRoms(files); } catch (e) { status(e.message); return; }
     gfx = new CC.Graphics(roms);
     const defs = (CC.ANIMDEFS && JSON.parse(JSON.stringify(CC.ANIMDEFS))) || { anims: [], tiles: [] };
-    hd = new CC.HD.HDPack(gfx, defs);
+    hd = new CC.HD.HDPack(gfx, defs, CC.OBJDEFS);
     renderer = new CC.Renderer(canvas, gfx, hd);
     game = new CC.Game(CC.patchRomForEnter(roms.main));
     hookWidescreen(game);
@@ -80,6 +82,16 @@
   // and stops extending it when the screen is cleared
   function hookWidescreen(g) {
     const P = CC.Game.prototype;
+    // animation script each object is playing (for the HD "sprites ya armados")
+    g.visFrame = function (x, n, entry, size) {
+      const c = objects.get(x);
+      let start = entry;
+      if (c && c.size === size) {
+        const nx = c.next, rom = this.rom;
+        if (entry === nx || (rom[nx] === 0xff && entry === ((rom[nx + 1] << 8) | rom[nx + 2]))) start = c.start;
+      }
+      objects.set(x, { start, next: entry + size, size });
+    };
     g.drawStageDone_7015 = function () {
       P.drawStageDone_7015.call(this);
       renderer.captureBase(this.m.subarray(0x3400, 0x3800), this.m.subarray(0x3000, 0x3400));
@@ -137,10 +149,13 @@
     // vblank: the sprite hardware latches the bank written during the last frame
     const bank = game.out.spriteBank ? 0x3900 : 0x3800;
     spriteBuffer.set(game.m.subarray(bank, bank + 0x100));
+    vs.reverse = spriteReverse;
     try { game.tick(); } catch (e) {
       if (!(e instanceof CC.Game.Todo)) throw e;
       if (!frame.warned) { console.warn(e.message); frame.warned = true; }
     }
+    spriteReverse = game.m[0x28df] !== 0;         // order used by the list built this frame
+    if (game.m[0x2003] !== 2 && game.m[0x2003] !== 0) objects.clear();
     frameNo++;
   }
 
@@ -148,6 +163,7 @@
     vs.videoram = game.m.subarray(0x3400, 0x3800);
     vs.colorram = game.m.subarray(0x3000, 0x3400);
     vs.sprites = spriteBuffer;
+    vs.objects = objects;
     vs.scroll = game.out.scroll;
     renderer.render(vs, frameNo);
   }
@@ -195,6 +211,7 @@
     $('hd-folder').onchange = async (e) => loadHD(e.target.files);
     $('hd-zip').onchange = async (e) => loadHD(e.target.files);
     $('btn-export').onclick = exportGraphics;
+    $('btn-export-obj').onclick = exportObjects;
     window.addEventListener('dragover', (e) => e.preventDefault());
     window.addEventListener('drop', async (e) => {
       e.preventDefault();
@@ -232,6 +249,16 @@
     a.click();
   }
 
+  /** Whole sprites per object and animation (test: stage 2). */
+  function exportObjects() {
+    if (!gfx || !CC.OBJDEFS) return;
+    const zip = CC.Zip.write(CC.HD.buildObjectExport(gfx, CC.OBJDEFS, [2]));
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([zip], { type: 'application/zip' }));
+    a.download = 'circus_charlie_sprites_etapa2.zip';
+    a.click();
+  }
+
   async function init() {
     setupUI();
     status('Buscando el ROM (carpeta circuscc/ o circuscc.zip)...');
@@ -240,6 +267,6 @@
     else status('Arrastra aquí circuscc.zip o la carpeta circuscc, o elige los archivos.');
   }
 
-  window.CCApp = { get game() { return game; }, get renderer() { return renderer; }, settings, applySettings, input: () => input };
+  window.CCApp = { get game() { return game; }, get renderer() { return renderer; }, get hd() { return hd; }, settings, applySettings, input: () => input, loadHD };
   init();
 })();

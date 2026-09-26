@@ -1,0 +1,10 @@
+CIRCUS CHARLIE (remake) - GRAFICOS
+
+graficos/<entidad>/<animacion>/00.svg, 01.svg, ...
+
+Cada carpeta es una animacion. Los SVG son dibujos provisorios.
+Para reemplazarlos pon 00.png, 01.png, ... (o .svg) en la carpeta:
+ - de cualquier tamano: se escalan al tamano de la entidad (manifest.json
+   "tamano", en pixeles del juego original) con suavizado;
+ - con cualquier cantidad de frames: la animacion dura lo mismo que la original.
+Si una carpeta tiene PNG, se usan los PNG en lugar de los SVG.
