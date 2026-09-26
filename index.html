@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Circus Charlie</title>
+<style>
+  :root { --bg: #000; --panel: rgba(12, 12, 20, 0.94); --fg: #f2f2f2; --accent: #ffcc00; --muted: #9aa; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); overflow: hidden;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+  #screen { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; }
+  .overlay { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+  .overlay[hidden] { display: none; }
+  .panel { background: var(--panel); border: 2px solid var(--accent); border-radius: 12px; padding: 20px 24px;
+    max-width: min(560px, calc(100vw - 32px)); max-height: calc(100vh - 32px); overflow: auto; box-sizing: border-box; }
+  h1 { margin: 0 0 8px; color: var(--accent); font-size: 26px; letter-spacing: 2px; }
+  h2 { margin: 16px 0 6px; font-size: 15px; color: var(--accent); }
+  p, label { font-size: 14px; line-height: 1.5; }
+  label { display: flex; gap: 8px; align-items: center; margin: 4px 0; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; }
+  button, .filebtn { background: #222; color: var(--fg); border: 1px solid #555; border-radius: 6px; padding: 7px 12px;
+    font-size: 14px; cursor: pointer; }
+  button:hover, .filebtn:hover { border-color: var(--accent); }
+  .filebtn input { display: none; }
+  select { background: #222; color: var(--fg); border: 1px solid #555; border-radius: 4px; padding: 3px; }
+  #btn-menu { position: fixed; top: 10px; right: 10px; opacity: 0.35; }
+  #btn-menu:hover { opacity: 1; }
+  .keys { color: var(--muted); font-size: 13px; }
+  kbd { background: #333; border-radius: 3px; padding: 1px 5px; font-family: inherit; }
+</style>
+</head>
+<body>
+<canvas id="screen"></canvas>
+<button id="btn-menu" title="Menú (ESC)">☰</button>
+
+<div id="loader" class="overlay">
+  <div class="panel">
+    <h1>CIRCUS CHARLIE</h1>
+    <p id="status">Cargando...</p>
+    <div class="row">
+      <label class="filebtn">Elegir circuscc.zip / archivos<input id="rom-files" type="file" multiple accept=".zip,*"></label>
+      <label class="filebtn">Elegir carpeta circuscc<input id="rom-folder" type="file" webkitdirectory multiple></label>
+    </div>
+    <p class="keys">Los gráficos se leen directamente del ROM del juego.</p>
+  </div>
+</div>
+
+<div id="menu" class="overlay" hidden>
+  <div class="panel">
+    <h1>MENÚ</h1>
+    <p class="keys"><kbd>ENTER</kbd> empezar · <kbd>←</kbd><kbd>→</kbd> moverse · <kbd>ESPACIO</kbd>/<kbd>Z</kbd> saltar ·
+      <kbd>ESC</kbd> menú · <kbd>P</kbd> pausa · <kbd>W</kbd> modo de pantalla · <kbd>H</kbd> HD · <kbd>F</kbd> pantalla completa</p>
+    <h2>Pantalla</h2>
+    <label>Modo <select data-set="displayMode">
+      <option value="fit">Ajustar (proporción original)</option>
+      <option value="wide">Ancha (escenario extendido)</option>
+      <option value="stretch">Estirar a toda la ventana</option>
+    </select></label>
+    <label><input type="checkbox" data-set="ambient"> Fondo ambiental en los laterales</label>
+    <label><input type="checkbox" data-set="smooth"> Escalado suave</label>
+    <label><input type="checkbox" data-set="scanlines"> Líneas de barrido (CRT)</label>
+    <h2>Gráficos HD</h2>
+    <label><input type="checkbox" data-set="hd"> Usar gráficos HD</label>
+    <div class="row">
+      <label class="filebtn">Cargar carpeta HD<input id="hd-folder" type="file" webkitdirectory multiple></label>
+      <label class="filebtn">Cargar .zip HD<input id="hd-zip" type="file" accept=".zip"></label>
+      <button id="btn-export">Exportar gráficos del ROM</button>
+    </div>
+    <p id="hd-status" class="keys"></p>
+    <h2>Partida</h2>
+    <label>Vidas <select data-set="lives"><option>3</option><option>4</option><option>5</option><option>7</option></select></label>
+    <label>Dificultad <select data-set="difficulty">
+      <option value="easy">Fácil</option><option value="normal">Normal</option>
+      <option value="hard">Difícil</option><option value="hardest">Muy difícil</option></select></label>
+    <div class="row"><button id="btn-close">Volver al juego</button></div>
+  </div>
+</div>
+
+<script src="js/roms.js"></script>
+<script src="js/gfx.js"></script>
+<script src="js/zip.js"></script>
+<script src="js/png.js"></script>
+<script src="js/hd.js"></script>
+<script src="js/renderer.js"></script>
+<script src="js/input.js"></script>
+<script src="js/engine/core.js"></script>
+<script src="js/engine/main.js"></script>
+<script src="js/engine/modes.js"></script>
+<script src="js/engine/common.js"></script>
+<script src="js/engine/stage1.js"></script>
+<script src="js/engine/stage2.js"></script>
+<script src="js/engine/stage3.js"></script>
+<script src="js/engine/boot.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
