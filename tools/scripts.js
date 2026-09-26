@@ -17,4 +17,12 @@ function playStage(st, seed) {
   };
 }
 const attract = () => () => ({});
-module.exports = { playStage, attract, lcg };
+// replays the inputs saved by tools/explore.js (INPUTS=file); then idles
+function replay(json) {
+  const seq = JSON.parse(json);
+  return (f) => {
+    const v = seq[f] || 0;
+    return { start1: !!(v & 8), left: !!(v & 1), right: !!(v & 2), button: !!(v & 16) };
+  };
+}
+module.exports = { playStage, attract, lcg, replay };

@@ -272,7 +272,7 @@
       m[(y + s8(a)) & 0xffff] = this.rom8(--x);
       a = (a - 1) & 0xff;
     } while (!(a & 0x80));
-    this.w16(u + 6, vramStep(y, 0x341f - 0x3400 + 0x3400) );
+    this.w16(u + 6, vramStep(y, 0x1f));
     m[u + 3] = (m[u + 3] - 1) & 0xff;
     if (!m[u + 3]) { m[u] = 0; m[0x220b] = 2; }
     return false;

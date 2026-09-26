@@ -8,7 +8,8 @@ const scripts = require('./scripts');
 const args = process.argv.slice(2);
 const flags = new Set(args.filter(a => a.startsWith('--')));
 const pos = args.filter(a => !a.startsWith('--'));
-const script = pos[0] === 'stage' ? scripts.playStage(+pos[1] || 1, +pos[3] || 7) : scripts.attract();
+const script = pos[0] === 'stage' ? scripts.playStage(+pos[1] || 1, +pos[3] || 7)
+  : pos[0] === 'file' ? scripts.replay(require('fs').readFileSync(pos[1], 'utf8')) : scripts.attract();
 const FRAMES = +pos[2] || 3000;
 const roms = loadRomDir();
 const emu = new CC.CircusCharlie(roms);
