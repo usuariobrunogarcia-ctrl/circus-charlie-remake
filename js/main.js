@@ -20,7 +20,7 @@
   const vs = { videoram: null, colorram: null, sprites: spriteBuffer, scroll: 0, flip: 0 };
 
   function loadSettings() {
-    const def = { displayMode: 'fit', smooth: false, hd: true, ambient: true, scanlines: false, lives: 3, difficulty: 'normal' };
+    const def = { displayMode: 'wide', smooth: false, hd: true, ambient: true, scanlines: false, lives: 3, difficulty: 'normal' };
     try { return Object.assign(def, JSON.parse(localStorage.getItem('cc-settings') || '{}')); } catch (e) { return def; }
   }
   function saveSettings() { try { localStorage.setItem('cc-settings', JSON.stringify(settings)); } catch (e) { /* ignore */ } }
@@ -66,6 +66,7 @@
     hd = new CC.HD.HDPack(gfx, defs);
     renderer = new CC.Renderer(canvas, gfx, hd);
     game = new CC.Game(CC.patchRomForEnter(roms.main));
+    hookWidescreen(game);
     applyDips();
     game.boot();
     $('loader').hidden = true;
@@ -73,6 +74,19 @@
     running = true;
     last = performance.now();
     requestAnimationFrame(loop);
+  }
+
+  // widescreen: the renderer learns the stage background when it has been drawn,
+  // and stops extending it when the screen is cleared
+  function hookWidescreen(g) {
+    const P = CC.Game.prototype;
+    g.drawStageDone_7015 = function () {
+      P.drawStageDone_7015.call(this);
+      renderer.captureBase(this.m.subarray(0x3400, 0x3800), this.m.subarray(0x3000, 0x3400));
+    };
+    for (const name of ['clearScreenStep_BA63', 'clearPlayfield_6AF1', 'clearScreen_699B']) {
+      g[name] = function (...a) { renderer.setExtended(false); return P[name].apply(this, a); };
+    }
   }
 
   function applyDips() {

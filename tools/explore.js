@@ -39,7 +39,9 @@ function capture() {
 }
 
 let dist = 0, lastScroll = 0;
+const inputs = [];   // committed inputs (INPUTS=<file> saves them for tools/hybrid.js)
 function step(inp, rec) {
+  if (rec) inputs.push(inp);
   m.setInputs(inp);
   m.runFrame(false);
   let d = (m.scroll - lastScroll) & 0xff; if (d > 127) d -= 256;
@@ -81,7 +83,7 @@ function randomChunk() {
 const stack = [];   // {state, dist, lastScroll, recLen}
 let frames = 0, fails = 0, lastShot = 0;
 while (frames < MAXF) {
-  const base = { state: m.saveState(), dist, lastScroll, recLen: recorded.length };
+  const base = { state: m.saveState(), dist, lastScroll, recLen: recorded.length, inLen: inputs.length };
   const lives0 = m.mem[LIVES];
   let best = null, bestScore = -1e9;
   for (let k = 0; k < K; k++) {
@@ -111,7 +113,7 @@ while (frames < MAXF) {
     let b = null;
     for (let i = 0; i < back; i++) b = stack.pop();
     if (b) {
-      m.loadState(b.state); dist = b.dist; lastScroll = b.lastScroll; recorded.length = b.recLen; frames -= back * SEG;
+      m.loadState(b.state); dist = b.dist; lastScroll = b.lastScroll; recorded.length = b.recLen; inputs.length = b.inLen; frames -= back * SEG;
     }
     if (fails > 400) { console.error('stuck, accepting a death'); fails = 0; for (const inp of randomChunk()) step(inp, recorded); frames += SEG; }
     continue;
@@ -132,4 +134,5 @@ while (frames < MAXF) {
 const tiles = new Map();
 const framesOut = recorded.map((r) => { for (const k of r.t) tiles.set(k, (tiles.get(k) || 0) + 1); return { st: r.st, s: r.s, sc: r.sc }; });
 fs.writeFileSync(out, zlib.gzipSync(JSON.stringify({ frames: framesOut, tiles: Array.from(tiles) })));
+if (process.env.INPUTS) fs.writeFileSync(process.env.INPUTS, JSON.stringify(inputs.map((i) => (i.start1 ? 8 : 0) | (i.left ? 1 : 0) | (i.right ? 2 : 0) | (i.button ? 16 : 0))));
 console.error('done, recorded', recorded.length);
